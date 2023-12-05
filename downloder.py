@@ -3,6 +3,9 @@ import requests
 import dropbox
 import urllib.request
 
+from pathlib import Path
+global_path = Path(__file__).parent.parent.absolute()
+
 import pandas as pd
 
 data_path = os.path.dirname(os.path.dirname(os.path.realpath("__file__")))
@@ -13,57 +16,22 @@ class Downloader:
     This class downloads the data.
     """
 
-    def data_downloader(self, from_folder: str, to_folder: str):
-        data_folder = data_path + '/' + to_folder
-        os.makedirs(name=data_folder, exist_ok=True)
-        dbx = dropbox.Dropbox(oauth2_access_token='cDmk_VMavxMAAAAAAAAAAY4WdOJCz-A3uqPu2Ekes2xCMqcfx90hRkkPc7hFDFmW')
-        dbx_path = None
-        for entry in dbx.files_list_folder(path='').entries:
-            if entry.name == 'synthpop':
-                dbx_path = entry.path_display
-        for entry in dbx.files_list_folder(path=dbx_path + f"/{from_folder}").entries:
-            if isinstance(entry, dropbox.files.FolderMetadata):
-                self.data_downloader(from_folder + '/' + entry.name, to_folder + '/' + entry.name)
-            elif isinstance(entry, dropbox.files.FileMetadata):
-                dbx.files_download_to_file(download_path=os.path.join(data_folder, entry.name),
-                                           path=dbx_path + f"/{from_folder}/" + entry.name)
-
-    def download(self):
-        data_folder = "./census_2016"
-        os.makedirs(name=data_folder, exist_ok=True)
-        dbx = dropbox.Dropbox(oauth2_access_token='cDmk_VMavxMAAAAAAAAAAY4WdOJCz-A3uqPu2Ekes2xCMqcfx90hRkkPc7hFDFmW')
-        dbx_path = None
-        for entry in dbx.files_list_folder(path='./synthpop/lookup.csv').entries:
-            if entry.name == 'lookup.csv':
-                dbx_path = entry.path_display
-        for entry in dbx.files_list_folder(path=dbx_path).entries:
-            dbx.files_download_to_file(download_path=os.path.join(data_folder, entry.name),
-                                       path=dbx_path + entry.name)
-
-    def get_dropbox_client(self):
-        return dropbox.Dropbox(
-            oauth2_refresh_token="cDmk_VMavxMAAAAAAAAAAY4WdOJCz-A3uqPu2Ekes2xCMqcfx90hRkkPc7hFDFmW"
-        )
-
-    def download_file(self, remote_path: str, local_path: str):
+    def download_data(self):
         """
-        Downloads a file at a `remote_path` in Dropbox
-        to a `local_path` on the local machine.
+        This method downloads the data.
         """
-        print(f"Dropbox: downloading {remote_path}")
-        dbx = self.get_dropbox_client()
-        dbx.files_download_to_file(local_path, remote_path)
-        print(f"Dropbox: successfully downloaded to {local_path}")
+        path = os.path.join(data_path, "synpopCanada")
+        os.makedirs(os.path.join(path, "data"), exist_ok=True)
+        if not os.listdir(os.path.join(path, "data")):
+            dbx = dropbox.Dropbox(oauth2_refresh_token='cDmk_VMavxMAAAAAAAAAAY4WdOJCz-A3uqPu2Ekes2xCMqcfx90hRkkPc7hFDFmW')
+            for entry in dbx.files_list_folder("").entries:
+                dbx.files_download_to_file(os.path.join(path, "census_2016/" + entry.name),
+                                           entry.path_display)
+            print("The data has been successfully downloaded!")
 
 
 if __name__ == '__main__':
-    print(data_path)
-    # Downloader().download_file(remote_path="nrms1t8sdraat0le1k7ge", local_path="./census_2016")
-    url = "https://www.dropbox.com/scl/fo/nrms1t8sdraat0le1k7ge/h?rlkey=45l9zkq459o5nipuc5vbntz65&dl=0/lookup.csv?dl=1"  # dl=1 is important
+    print(global_path)
+    downl = Downloader()
+    downl.download_data()
 
-    u = urllib.request.urlopen(url)
-    data = u.read()
-    u.close()
-
-    with open("lookup.csv", "wb") as f:
-        f.write(data)
