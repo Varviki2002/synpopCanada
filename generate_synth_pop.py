@@ -48,6 +48,7 @@ def load_DAs(path):
     filename = place.replace(" ", "_").lower()
     DA_codes = filtered_lookup[' DAuid/ADidu'].unique()
     DA_codes.sort()
+    DA_codes = DA_codes[0: 2]
     print(str(DA_codes.size) + " DAs")
     return DA_codes, filename
 
@@ -673,10 +674,10 @@ def comb_opti_integerization(p, total_pop):
 
 
 def probabilistic_sampling(p, total_pop):
-    probas = np.float64(p["result"]).ravel()
+    probas = np.float64(p[0]).ravel()
     probas /= np.sum(probas)
     selected = np.random.choice(len(probas), total_pop, False, probas)
-    result = np.zeros(p["result"].shape, np.uint8)
+    result = np.zeros(p[0].shape, np.uint8)
     result.ravel()[selected] = 1
     return result
 
@@ -752,7 +753,10 @@ def synthetise_pop_da(syn_inds, DA_code, da_census, province_census, seed, fast)
         # p["result"] = comb_opti_integerization(p, total_pop)
 
         # probabilistic sampling
-        p["result"] = probabilistic_sampling(p, total_pop)
+        p_list = list(p)
+        p_list[0] = probabilistic_sampling(p, total_pop)
+
+        p = tuple(p_list)
 
         chunk = pd.DataFrame(
             columns=['sex', "prihm", "agegrp", "area", "hdgree", "lfact", "hhsize", 'totinc', 'cfstat'])
@@ -763,7 +767,7 @@ def synthetise_pop_da(syn_inds, DA_code, da_census, province_census, seed, fast)
                               marginal_lfact, marginal_hh_size, marginal_inc])
         chunk = pd.DataFrame(columns=['sex', "prihm", "agegrp", "area", "hdgree", "lfact", "hhsize", 'totinc'])
 
-    table = humanleague.flatten(p["result"])
+    table = humanleague.flatten(p[0])
     chunk.sex = table[0]
     chunk.prihm = table[1]
     chunk.agegrp = table[2]

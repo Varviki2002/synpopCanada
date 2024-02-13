@@ -33,8 +33,7 @@ class Downloader:
 
     def download(self):
         data_folder = "./census_2016"
-        path = os.path.join(data_path, "synpopCanada")
-        os.makedirs(os.path.join(path, "data"), exist_ok=True)
+        os.makedirs(name=data_folder, exist_ok=True)
         dbx = dropbox.Dropbox(oauth2_access_token='cDmk_VMavxMAAAAAAAAAAY4WdOJCz-A3uqPu2Ekes2xCMqcfx90hRkkPc7hFDFmW')
         dbx_path = None
         for entry in dbx.files_list_folder(path='/lookup.csv').entries:
